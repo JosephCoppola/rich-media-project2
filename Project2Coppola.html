@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style type="text/css">
+      html, body, #map-canvas {width: 700px; height: 400px;  display: block; margin: 0.5em auto; padding: 0;}
+    </style>
+    <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5nE35GiOoXsEm_Ck0ezB35HScFVe9bTw">
+    </script>
+      <!-- Import jQuery -->
+    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript">
+      var map = undefined;
+      var infoWindow = undefined;
+
+      function initialize() {
+        //Add ISS Marker
+        $.getJSON('http://api.open-notify.org/iss-now.json?callback=?', function(data){
+
+          var latitude = data['iss_position']['latitude'];
+          var longitude = data['iss_position']['longitude'];
+
+          var mapOptions = {
+          center: { lat: latitude, lng: longitude},
+          zoom: 2,
+          mapTypeId: google.maps.MapTypeId.SATELLITE
+          };
+          
+          map = new google.maps.Map(document.getElementById('map-canvas'),
+            mapOptions);
+
+          addMarker(latitude,longitude,"ISS");
+
+        });
+      }
+
+      function addMarker(latp,longp,title){
+        var position = {lat: latp,lng:longp};
+        var marker = new google.maps.Marker({position: position, map:map});
+        marker.setTitle(title);
+        google.maps.event.addListener(marker,'click',function(e){
+            makeInfoWindow(this.position,this.title);
+        });
+      }
+
+      function makeInfoWindow(position,msg){
+        if(infoWindow) infoWindow.close();
+
+        infoWindow = new google.maps.InfoWindow({
+          map: map,
+          position: position,
+          content: "<b>" + msg + "</b>"
+        });
+      }
+
+      google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+  </head>
+  <body>
+<div id="map-canvas"></div>
+  </body>
+</html>
