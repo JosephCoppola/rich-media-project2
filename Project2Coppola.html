@@ -73,6 +73,8 @@
 
           map.setCenter(center);
 
+          var issText = getPeopleInSpace();
+
           addMarker(latitude,longitude,"ISS");
         });
       }
@@ -83,6 +85,11 @@
         {
           navigator.geolocation.getCurrentPosition(searchFlybyMe,geoError);
         }
+      }
+
+      function getPeopleInSpace()
+      {
+        
       }
 
       function searchFlybyMe(position)
