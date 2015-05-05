@@ -1,0 +1,48 @@
+body {
+	background-image: url("http://i.imgur.com/2y6TsYv.png");
+	background-size: cover;
+	background-position: center center;
+	background-color: #000000;
+	color: #000000;
+	font-weight: bold;
+	font-family: helvetica, sans-serif;
+}
+	
+img{ 
+	padding: 30px;
+	vertical-align:middle;
+}
+	
+h1{
+	text-align: center;
+}
+
+h2{
+	text-decoration: underline;
+}
+
+#background {
+	width: 50em; 
+	margin:auto;
+}
+
+#wrapper{
+	background: #ffffff;
+	width: 100%;
+	padding: 30px;	
+}
+
+#textWrapper{
+	float: left;
+}
+
+a:link {
+	color:#801515; 
+	font-weight:bold;
+	text-align: center;
+}
+a:hover {color:#FFAAAA;}
+
+a:visited{color:#D46A6A;}
+
+a:active{color:#550000;}

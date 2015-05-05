@@ -2,11 +2,13 @@
 <html>
   <head>
     <style type="text/css">
-      html, body, 
+      html {background-image:url("http://i.imgur.com/2y6TsYv.png")}
+      body,
       #map-canvas {width: 700px; height: 400px;  display: block; margin: 0.5em auto; padding: 0;}
       #wrapper{position: relative;}
       #Cood{color:#FFFFFF; background: rgba(0,0,0,0.5); width:25%; height: 35%; text-align: center; position: absolute; top: 250px; left: 500px; z-index: 99;}
       #flyCurrent{color:#FFFFFF; background: rgba(0,0,0,0.5); width:20%; text-align: center; position: absolute; top: 15px; left: 15px; z-index: 99;}
+      #flyInputed{color:#FFFFFF; background: rgba(0,0,0,0.5); width:20%; text-align: center; position: absolute; top: 300px; left: 15px; z-index: 99;}
     </style>
     <script type="text/javascript"
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5nE35GiOoXsEm_Ck0ezB35HScFVe9bTw">
@@ -19,7 +21,7 @@
       var updateCounter = 0;
       var mapOptions = undefined;
       var markers = [];
-      var trail= false;
+      var locationMarker = undefined;
       var issInfo = undefined;
 
       //Initialize the app by setting intial values for google maps, get people currently residing on the ISS, get the ISS first position and then begin update
@@ -52,7 +54,7 @@
       //Updates every ~6 seconds
       function update()
       {
-        //requestAnimationFrame(this.update.bind(this));
+        requestAnimationFrame(this.update.bind(this));
 
         //Once 6 seconds has passed reset the counter and set the new postion on the map
         if(updateCounter == 360)
@@ -63,34 +65,34 @@
 
         //Increment counter
         updateCounter++;
-
-        //console.log(updateCounter);
       }
 
       //Calls the Open Notify API to access the latitude and longitude of the ISS, update the UI position, and set a new marker on the map
       function getISSPosition()
       {
+        //Get the location of the ISS from the API
         $.getJSON('http://api.open-notify.org/iss-now.json?callback=?', function(data)
         {
-
-          //if trail is not true
+          //Remove the ISS marker
           removeMarkers();
 
+          //Grab the coords and update the UI
           var latitude = data['iss_position']['latitude'];
           var longitude = data['iss_position']['longitude'];
-
           document.querySelector("#lat").innerHTML = "Latitude: " + latitude;
           document.querySelector("#long").innerHTML = "Longitude: " + longitude;
           $("#Cood").fadeIn(1000);
 
+          //Set the center of the map, which will be the ISS
           var center = { lat: latitude, lng: longitude};
-
           map.setCenter(center);
 
-          addMarker(latitude,longitude,"<div>" + "<h3>International Space Station</h3>" + issInfo + "</div>");
+          //Add the new ISS marker
+          addMarker(latitude,longitude,"<div>" + "<h3>International Space Station</h3><p>People on board</p>" + issInfo + "</div>");
         });
       }
 
+      //Get the geolocation of the computer
       function getLocation()
       {
         if(navigator.geolocation)
@@ -99,13 +101,16 @@
         }
       }
 
+      //Call the API to get the people currently on the ISS
       function getPeopleInSpace()
       {
         $.getJSON('http://api.open-notify.org/astros.json?callback=?', function(data) {
+          //Put the data in a readable format
           stringPeople(data);
         });
       }
 
+      //Takes an array of people from Open Notify API and formats it in list format
       function stringPeople(data)
       {
         issInfo = "<ul>";
@@ -118,19 +123,102 @@
         issInfo += "</ul>"
       }
 
+      //If a geolocation was found, we feed Open Notify the coords and get the passes with an altitude of 10 degrees
       function searchFlybyMe(position)
+      {
+        if(locationMarker)
+        {
+          locationMarker.setMap(null);
+        }
+        $('#passesList').fadeOut(0);
+        $('#passesList').empty();
+
+        //Base URL we are going to send
+        var url = 'http://api.open-notify.org/iss-pass.json?';
+
+        //string together the query
+        url += 'lat=' + position.coords.latitude + '&lon=' + position.coords.longitude + '&alt=10&n=5&callback=?'; 
+
+        //Fetch the data from the API
+        $.getJSON(url,function(data)
+        {
+          //Add the title p tag telling what location we are calculating
+          $('#passesList').append('<p style = "padding: 5px">Passes for Latitude: ' + position.coords.latitude + ' Longitude: ' + position.coords.longitude)
+
+          //For each response append a li tag to the end of the div
+          data['response'].forEach(function (d)
+          {
+              var date = new Date(d['risetime'] * 1000);
+              $('#passesList').append('<li style = "padding: 3px">' + date.toString() + '</li>');
+          });
+        });
+
+        $("#passesList").fadeIn(1000);
+      }
+
+      //If there is any issue with grabbing the users location let them know
+      function geoError(error)
       {
         $('#passesList').fadeOut(0);
         $('#passesList').empty();
 
+        $('#passesList').append("<p>You need GeoLocation Services turned on to use this feature</p>")
+
+        $("#passesList").fadeIn(1000);
+      }
+
+      //Grab the input and send it to the Open Notify API to find out the passes for the geolocation
+      function nextFlyByAt()
+      {
+        $('#passesList').fadeOut(0);
+        $('#passesList').empty();
+
+        //Zoom out to see set marker
+        map.setZoom(2);
+
+        //If a location maker already exists, set it to null
+        if(locationMarker)
+        {
+          locationMarker.setMap(null);
+        }
+
+        //Base API URL
         var url = 'http://api.open-notify.org/iss-pass.json?';
 
-        url += 'lat=' + position.coords.latitude + '&lon=' + position.coords.longitude + '&alt=20&n=5&callback=?'; 
+        //Grab the input from the UI
+        var latitude = document.getElementById("Latitude").value;
+        var longitude = document.getElementById("Longitude").value;
 
+        //Check to ensure the user input is a valid int
+        if(!isNaN(latitude) && !isNaN(longitude))
+        {
+          //Now check if they are actual coordinates
+          if(latitude > 90 || latitude < -90 || longitude > 180 || longitude < -180)
+          {
+            $('#passesList').append('<p>Invalid Input, please input a latitude between -90 and 90 and a longitude between -180 and 180</p>');
+
+            $("#passesList").fadeIn(1000);
+            return;
+          }
+        }
+        else //If user input is anything besides integers
+        {
+          $('#passesList').append('<p>Invalid Input, please input a latitude between -90 and 90 and a longitude between -180 and 180</p>');
+
+          $("#passesList").fadeIn(1000);
+          return;
+        }
+
+        //Add on query 
+        url += 'lat=' + latitude + '&lon=' + longitude + '&alt=10&n=5&callback=?'; 
+
+        //Title Location
+        $('#passesList').append('<p>Passes for Latitude: ' + latitude + ' Longitude: ' + longitude)
+
+        //Call API with constructed URL
         $.getJSON(url,function(data)
         {
-          $('#passesList').append('<p>Passes for Latitude: ' + position.coords.latitude + ' Longitude: ' + position.coords.longitude)
-
+          //For each pass append a li tag to the div tag
           data['response'].forEach(function (d)
           {
               var date = new Date(d['risetime'] * 1000);
@@ -138,16 +226,21 @@
           });
         });
 
+        //Create another marker where the user inputed the information to show the true location on earth and create a respective info windoq
+        var position = {lat:parseInt(latitude),lng:parseInt(longitude)};
+        locationMarker = new google.maps.Marker({position: position, map:map});
+        locationMarker.setTitle("Latitude: " + latitude + " Longitude:" + longitude);
+        google.maps.event.addListener(locationMarker,'click',function(e)
+        {
+            makeInfoWindow(this.position,"<h2>Location: </h2><p>" + this.title + "</p>");
+        });
+
         $("#passesList").fadeIn(1000);
       }
 
-      function geoError(error)
-      {
-        console.log(error);
-      }
-
+      //Used to update the ISS location, changes marker icon to ISS icon
       function addMarker(latp,longp,title){
-        var position = {lat: latp,lng:longp};
+        var position = {lat:latp,lng:longp};
         var marker = new google.maps.Marker({position: position, map:map, icon: 'issSmall.png'});
         marker.setTitle(title);
         google.maps.event.addListener(marker,'click',function(e){
@@ -160,6 +253,7 @@
         markers.push(marker);
       }
 
+      //Used to create infoWindows for various markers 
       function makeInfoWindow(position,msg){
         if(infoWindow) infoWindow.close();
 
@@ -170,6 +264,7 @@
         });
       }
 
+      //Used to remove markers
       function removeMarkers()
       {
         if(infoWindow) infoWindow.close();
@@ -186,6 +281,7 @@
     </script>
   </head>
   <body>
+    <div style = "color: #FFFFFF; text-align: center"><h1>Where is the ISS?</h1></div>
     <div id ="wrapper">
       <div id="map-canvas"></div>
       <div id="Cood">
@@ -196,7 +292,12 @@
       <div id="flyCurrent">
         <button onclick="getLocation()" type="button" style="margin: 5px">Next Fly By Me</button>
       </div>
+      <div id="flyInputed">
+        <button onclick="nextFlyByAt()" type="button" style="margin: 5px">Next Fly By at Location</button>
+        <input style ="width: 50%;" type="text" id="Latitude" value="Latitude">
+        <input style ="width: 50%;" type="text" id="Longitude" value="Longitude">
+      </div>
     </div>
-    <div id="passesList"></div>
+    <div style = "background:rgba(0,0,0,0.7); color: #FFFFFF; text-align: center;" id="passesList"></div>
   </body>
 </html>

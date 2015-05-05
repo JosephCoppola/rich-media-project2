@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>Where's the ISS?</title>
+	<link rel="stylesheet" type="text/css" href="Style.css" />
+</head>
+
+<body>
+<div id="background">
+	<div id="wrapper">	
+		<h1>Where's the Space Station (Formally Where's The Tweet?)</h1>		
+		
+		<a style="display:block;text-align:center"href="">
+		Link to gitHub repo (Coming Soon)</a>
+		
+		<p>
+		<img src="Mockup2.PNG" alt="Concept" width="550" height="300" align="middle"/>
+		</p>
+
+		<h3 style="display:block;text-align:center"><em>Visualize the ISS around the globe and find out the next time it flies by!</em></h3>
+
+		<h2>Radical Changes</h2>
+
+		<p>
+			So originally I wanted to make an application that would take user input and spit out tweets geo location on to the google map. However, just getting an application to authenticate with Twitter's API was a major hassle of its own, especially when I barely have knowledge of PHP. The API wanted server side only authentication to get a simple JSON file. 
+		</p>
+
+		<p>
+			So sadly I had to change directions, and pretty late too. Nonetheless, I am confident Where's the Space Station will be easier to implement and won't require the pain staking process of OAuth like Twitter's API requires. 
+		</p>
+
+		<h2>General Description:</h2>
+		
+		<p>
+			So sadly I had to change directions, and pretty late too. Nonetheless, I am confident Where's the Space Station will be easier to implement and won't require the pain staking process of OAuth like Twitter's API requires. Where's the Space Station is going to be an application that will be developed in HTML5/Canvas. This application will utilize the Open Notify API and the Google Maps API. The goal of the application will be to visualize the current ISS position over the globe, as well as allow the user to input any latitude and longitude to determine the next time the ISS will pass by. Should everything fall within scope I hope to either implement a third API to tell you the weather on the days the ISS passes by or even an API that tells you the locations of other orbiting objects.
+		</p>
+		
+		<h2>Web APIs:</h2>
+		
+		<p>
+			<ul>
+				<li>Google Maps:<a href="https://developers.google.com/maps/">Google Maps API</a></li>
+				<li>ISS Current Location:<a href="http://open-notify.org/Open-Notify-API/ISS-Location-Now/">ISS Current Location API</a></li>
+				<li>ISS Pass Times:<a href="http://open-notify.org/Open-Notify-API/ISS-Pass-Times/">ISS Pass Times API</a></li>
+			</ul> 
+		</p>
+
+		<h2>User Interface:</h2>
+		<p>
+			The UI will allow the user to get additional information out of the application. It will display locations for the ISS. A button will be used for determining the next time the ISS will be seen from the devices current location. Lastly there will be an input fields for other locations that aren't your current location. 
+		</p>
+	</div>
+</div>
+</body>
+</html>
