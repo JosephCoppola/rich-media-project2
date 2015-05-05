@@ -20,9 +20,14 @@
       var mapOptions = undefined;
       var markers = [];
       var trail= false;
+      var issInfo = undefined;
 
+      //Initialize the app by setting intial values for google maps, get people currently residing on the ISS, get the ISS first position and then begin update
       function initialize() {
+
         $('#passesList').fadeOut(0);
+
+        //Intial options for setting up google map
         mapOptions = {
           center: { lat: 0, lng: 0},
           zoom: 2,
@@ -30,30 +35,39 @@
           disableDefaultUI: true
         };
 
+        //Create a google map object
         map = new google.maps.Map(document.getElementById('map-canvas'),
         mapOptions);
 
-        //Add ISS Marker
+        //Grab first geolocation of ISS
+        getPeopleInSpace();
+
+        //Get intial position and add ISS Marker
         getISSPosition();
 
         update();
       }
 
+      //Handles updating the ISS position on the map
+      //Updates every ~6 seconds
       function update()
       {
         //requestAnimationFrame(this.update.bind(this));
 
+        //Once 6 seconds has passed reset the counter and set the new postion on the map
         if(updateCounter == 360)
         {
           updateCounter = 0;
           getISSPosition();
         }
 
+        //Increment counter
         updateCounter++;
 
         //console.log(updateCounter);
       }
 
+      //Calls the Open Notify API to access the latitude and longitude of the ISS, update the UI position, and set a new marker on the map
       function getISSPosition()
       {
         $.getJSON('http://api.open-notify.org/iss-now.json?callback=?', function(data)
@@ -73,9 +87,7 @@
 
           map.setCenter(center);
 
-          var issText = getPeopleInSpace();
-
-          addMarker(latitude,longitude,"ISS");
+          addMarker(latitude,longitude,"<div>" + "<h3>International Space Station</h3>" + issInfo + "</div>");
         });
       }
 
@@ -89,7 +101,21 @@
 
       function getPeopleInSpace()
       {
-        
+        $.getJSON('http://api.open-notify.org/astros.json?callback=?', function(data) {
+          stringPeople(data);
+        });
+      }
+
+      function stringPeople(data)
+      {
+        issInfo = "<ul>";
+
+        for(var i = 0; i < data.people.length; i++)
+        {
+           issInfo += "<li>" + data.people[i].name + "</li>";
+        }
+
+        issInfo += "</ul>"
       }
 
       function searchFlybyMe(position)
