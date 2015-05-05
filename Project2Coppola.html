@@ -22,6 +22,7 @@
       var trail= false;
 
       function initialize() {
+        $('#passesList').fadeOut(0);
         mapOptions = {
           center: { lat: 0, lng: 0},
           zoom: 2,
@@ -40,7 +41,7 @@
 
       function update()
       {
-        requestAnimationFrame(this.update.bind(this));
+        //requestAnimationFrame(this.update.bind(this));
 
         if(updateCounter == 360)
         {
@@ -86,8 +87,9 @@
 
       function searchFlybyMe(position)
       {
+        $('#passesList').fadeOut(250);
         $('#passesList').empty();
-        
+
         var url = 'http://api.open-notify.org/iss-pass.json?';
 
         url += 'lat=' + position.coords.latitude + '&lon=' + position.coords.longitude + '&alt=20&n=5&callback=?'; 
@@ -102,6 +104,8 @@
               $('#passesList').append('<li>' + date.toString() + '</li>');
           });
         });
+
+        $("#passesList").fadeIn(1000);
       }
 
       function geoError(error)
