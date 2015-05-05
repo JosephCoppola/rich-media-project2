@@ -15,21 +15,42 @@
     <script type="text/javascript">
       var map = undefined;
       var infoWindow = undefined;
+      var updateCounter = 0;
+      var mapOptions = undefined;
 
       function initialize() {
+        mapOptions = {
+          center: { lat: 0, lng: 0},
+          zoom: 2,
+          mapTypeId: google.maps.MapTypeId.SATELLITE
+        };
+
+        map = new google.maps.Map(document.getElementById('map-canvas'),
+        mapOptions);
+
         //Add ISS Marker
         getISSPosition();
+
+        update();
       }
 
       function update()
       {
+        //requestAnimationFrame(this.update.bind(this));
 
+        if(updateCounter == 1000)
+        {
+          updateCounter = 0;
+          getISSPosition();
+        }
+
+        updateCounter++;
       }
 
       function getISSPosition()
       {
-           $.getJSON('http://api.open-notify.org/iss-now.json?callback=?', function(data){
-
+        $.getJSON('http://api.open-notify.org/iss-now.json?callback=?', function(data)
+        {
           var latitude = data['iss_position']['latitude'];
           var longitude = data['iss_position']['longitude'];
 
@@ -37,14 +58,9 @@
           document.querySelector("#long").innerHTML = "Longitude: " + longitude;
           $("#Cood").fadeIn(1000);
 
-          var mapOptions = {
-          center: { lat: latitude, lng: longitude},
-          zoom: 2,
-          mapTypeId: google.maps.MapTypeId.SATELLITE
-          };
-          
-          map = new google.maps.Map(document.getElementById('map-canvas'),
-            mapOptions);
+          center = { lat: latitude, lng: longitude};
+
+          map.setCenter(center);
 
           addMarker(latitude,longitude,"ISS");
         });
