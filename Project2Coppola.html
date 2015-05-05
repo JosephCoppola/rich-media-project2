@@ -6,6 +6,7 @@
       #map-canvas {width: 700px; height: 400px;  display: block; margin: 0.5em auto; padding: 0;}
       #wrapper{position: relative;}
       #Cood{color:#FFFFFF; background: rgba(0,0,0,0.5); width:25%; height: 35%; text-align: center; position: absolute; top: 250px; left: 500px; z-index: 99;}
+      #flyCurrent{color:#FFFFFF; background: rgba(0,0,0,0.5); width:20%; text-align: center; position: absolute; top: 350px; left: 50px; z-index: 99;}
     </style>
     <script type="text/javascript"
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5nE35GiOoXsEm_Ck0ezB35HScFVe9bTw">
@@ -17,6 +18,8 @@
       var infoWindow = undefined;
       var updateCounter = 0;
       var mapOptions = undefined;
+      var markers = [];
+      var trail= false;
 
       function initialize() {
         mapOptions = {
@@ -36,7 +39,7 @@
 
       function update()
       {
-        //requestAnimationFrame(this.update.bind(this));
+        requestAnimationFrame(this.update.bind(this));
 
         if(updateCounter == 1000)
         {
@@ -45,12 +48,18 @@
         }
 
         updateCounter++;
+
+        //console.log(updateCounter);
       }
 
       function getISSPosition()
       {
         $.getJSON('http://api.open-notify.org/iss-now.json?callback=?', function(data)
         {
+
+          //if trail is not true
+          removeMarkers();
+
           var latitude = data['iss_position']['latitude'];
           var longitude = data['iss_position']['longitude'];
 
@@ -58,7 +67,7 @@
           document.querySelector("#long").innerHTML = "Longitude: " + longitude;
           $("#Cood").fadeIn(1000);
 
-          center = { lat: latitude, lng: longitude};
+          var center = { lat: latitude, lng: longitude};
 
           map.setCenter(center);
 
@@ -66,13 +75,38 @@
         });
       }
 
+      function getLocation()
+      {
+        if(navigator.geolocation)
+        {
+          navigator.geolocation.getCurrentPosition(searchFlybyMe,geoError);
+        }
+      }
+
+      function searchFlybyMe(position)
+      {
+        var url = 'http://api.open-notify.org/iss-pass.json?';
+
+        console.log(position);
+      }
+
+      function geoError(error)
+      {
+        console.log(error);
+      }
+
       function addMarker(latp,longp,title){
         var position = {lat: latp,lng:longp};
-        var marker = new google.maps.Marker({position: position, map:map});
+        var marker = new google.maps.Marker({position: position, map:map, icon: 'issSmall.png'});
         marker.setTitle(title);
         google.maps.event.addListener(marker,'click',function(e){
+          //Set window a bit above the marker, then reset to prevent the info window from spawning 10 above each click
+            this.position.A += 10;
             makeInfoWindow(this.position,this.title);
+            this.position.A -= 10;
         });
+
+        markers.push(marker);
       }
 
       function makeInfoWindow(position,msg){
@@ -85,6 +119,18 @@
         });
       }
 
+      function removeMarkers()
+      {
+        if(infoWindow) infoWindow.close();
+
+        for(var i = 0; i< markers.length; i++)
+        {
+          markers[i].setMap(null);
+        }
+
+        markers = [];
+      }
+
       google.maps.event.addDomListener(window, 'load', initialize);
     </script>
   </head>
@@ -95,6 +141,9 @@
         <p>Current Position</p>
         <div id="lat"></div>
         <div id="long"></div>
+      </div>
+      <div id="flyCurrent">
+        <button onclick="getLocation()" type="button" style="margin: 5px">Next Fly By Me</button>
       </div>
     </div>
   </body>
